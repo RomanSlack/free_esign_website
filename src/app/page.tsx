@@ -4,24 +4,24 @@ import { useCallback, useEffect } from 'react'
 import { useStore } from '@/store/useStore'
 import PDFUploader from '@/components/PDFUploader'
 import PDFViewer from '@/components/PDFViewer'
-import ContextMenu from '@/components/ContextMenu'
+import Toolbar from '@/components/Toolbar'
 import SignatureModal from '@/components/SignatureModal'
-import CursorTooltip from '@/components/CursorTooltip'
 import { exportPdf, downloadPdf } from '@/lib/pdfExport'
 
 export default function Home() {
-  const { pdfFile, pdfPages, stamps, reset, hideContextMenu, contextMenu } = useStore()
+  const { pdfFile, pdfPages, stamps, reset } = useStore()
 
+  // Warn before closing if there are unsaved changes
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (contextMenu.visible && !target.closest('.context-menu')) {
-        hideContextMenu()
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (stamps.length > 0) {
+        e.preventDefault()
+        e.returnValue = ''
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [contextMenu.visible, hideContextMenu])
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [stamps.length])
 
   const handleExport = useCallback(async () => {
     if (!pdfFile || stamps.length === 0) return
@@ -65,6 +65,9 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Toolbar */}
+      <Toolbar />
+
       {/* Main Content */}
       <main className="max-w-5xl mx-auto px-4 py-8">
         {!pdfFile ? (
@@ -81,10 +84,8 @@ export default function Home() {
         )}
       </main>
 
-      {/* Floating Components */}
-      <ContextMenu />
+      {/* Signature Modal */}
       <SignatureModal />
-      <CursorTooltip />
 
       {/* Footer */}
       <footer className="fixed bottom-4 left-4 flex items-center gap-3 text-sm text-gray-500">

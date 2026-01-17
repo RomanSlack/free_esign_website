@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore'
 import Stamp from './Stamp'
 
 export default function PDFViewer() {
-  const { pdfFile, pdfPages, setPdfPages, stamps, showContextMenu, setSelectedStampId, hideContextMenu } = useStore()
+  const { pdfFile, pdfPages, setPdfPages, stamps, setSelectedStampId, selectedTool, addStamp, showSignatureModal, setEditingStampId } = useStore()
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -45,25 +45,60 @@ export default function PDFViewer() {
     if (target.closest('.stamp-element')) return
 
     const rect = e.currentTarget.getBoundingClientRect()
-    const localX = e.clientX - rect.left
-    const localY = e.clientY - rect.top
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
 
-    setSelectedStampId(null)
-    // Pass both local coords (for stamp placement) and viewport coords (for menu position)
-    showContextMenu(localX, localY, pageIndex, e.clientX, e.clientY)
-  }, [showContextMenu, setSelectedStampId])
-
-  const handleContainerClick = useCallback((e: React.MouseEvent) => {
-    const target = e.target as HTMLElement
-    if (!target.closest('.context-menu') && !target.closest('.stamp-element')) {
-      hideContextMenu()
+    if (selectedTool === 'select') {
+      setSelectedStampId(null)
+      return
     }
-  }, [hideContextMenu])
+
+    if (selectedTool === 'signature') {
+      showSignatureModal(x, y, pageIndex)
+      return
+    }
+
+    if (selectedTool === 'text') {
+      const id = `text-${Date.now()}`
+      addStamp({
+        id,
+        type: 'text',
+        x: x - 50,
+        y: y - 12,
+        width: 100,
+        height: 24,
+        content: '',
+        pageIndex,
+      })
+      setSelectedStampId(id)
+      setEditingStampId(id)
+      return
+    }
+
+    if (selectedTool === 'date') {
+      const today = new Date().toLocaleDateString('en-US', {
+        month: '2-digit',
+        day: '2-digit',
+        year: 'numeric',
+      })
+      addStamp({
+        id: `date-${Date.now()}`,
+        type: 'date',
+        x: x - 50,
+        y: y - 12,
+        width: 100,
+        height: 24,
+        content: today,
+        pageIndex,
+      })
+      return
+    }
+  }, [selectedTool, setSelectedStampId, addStamp, showSignatureModal, setEditingStampId])
 
   if (pdfPages.length === 0) return null
 
   return (
-    <div ref={containerRef} onClick={handleContainerClick} className="flex flex-col items-center gap-4">
+    <div ref={containerRef} className="flex flex-col items-center gap-4">
       {pdfPages.map((page, pageIndex) => (
         <div
           key={pageIndex}

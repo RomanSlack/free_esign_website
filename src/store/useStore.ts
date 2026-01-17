@@ -28,6 +28,8 @@ interface SignatureModal {
   pageIndex: number
 }
 
+export type Tool = 'select' | 'signature' | 'text' | 'date'
+
 interface AppState {
   pdfFile: File | null
   pdfPages: string[]
@@ -36,6 +38,7 @@ interface AppState {
   contextMenu: ContextMenu
   signatureModal: SignatureModal
   editingStampId: string | null
+  selectedTool: Tool
 
   setPdfFile: (file: File | null) => void
   setPdfPages: (pages: string[]) => void
@@ -48,6 +51,7 @@ interface AppState {
   showSignatureModal: (x: number, y: number, pageIndex: number) => void
   hideSignatureModal: () => void
   setEditingStampId: (id: string | null) => void
+  setSelectedTool: (tool: Tool) => void
   reset: () => void
 }
 
@@ -59,6 +63,7 @@ const initialState = {
   contextMenu: { visible: false, x: 0, y: 0, pageIndex: 0, viewportX: 0, viewportY: 0 },
   signatureModal: { visible: false, x: 0, y: 0, pageIndex: 0 },
   editingStampId: null,
+  selectedTool: 'signature' as Tool,
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -96,6 +101,8 @@ export const useStore = create<AppState>((set) => ({
   hideSignatureModal: () => set({ signatureModal: { visible: false, x: 0, y: 0, pageIndex: 0 } }),
 
   setEditingStampId: (id) => set({ editingStampId: id }),
+
+  setSelectedTool: (tool) => set({ selectedTool: tool }),
 
   reset: () => set(initialState),
 }))

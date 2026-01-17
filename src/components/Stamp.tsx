@@ -16,6 +16,7 @@ export default function Stamp({ stamp }: StampProps) {
   const dragStart = useRef({ x: 0, y: 0, stampX: 0, stampY: 0 })
   const resizeStart = useRef({ width: 0, height: 0, mouseX: 0, mouseY: 0 })
   const inputRef = useRef<HTMLInputElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
@@ -58,6 +59,7 @@ export default function Stamp({ stamp }: StampProps) {
         const dy = e.clientY - resizeStart.current.mouseY
         const newWidth = Math.max(50, resizeStart.current.width + dx)
         const newHeight = Math.max(20, resizeStart.current.height + dy)
+        // No max size limit - user can resize as large as needed
         updateStamp(stamp.id, { width: newWidth, height: newHeight })
       }
     }
@@ -113,13 +115,14 @@ export default function Stamp({ stamp }: StampProps) {
         <img
           src={stamp.content}
           alt="Signature"
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain pointer-events-none"
           draggable={false}
         />
       )
     }
 
     if (stamp.type === 'text') {
+      const fontSize = Math.max(12, Math.min(stamp.height * 0.6, 64))
       if (isEditing) {
         return (
           <input
@@ -128,24 +131,29 @@ export default function Stamp({ stamp }: StampProps) {
             onChange={handleTextChange}
             onBlur={handleTextBlur}
             onKeyDown={handleKeyDown}
-            className="w-full h-full bg-transparent outline-none text-center"
-            style={{ fontSize: Math.min(stamp.height * 0.7, 24), fontFamily: stamp.fontFamily }}
+            placeholder="Type here..."
+            className="w-full h-full bg-transparent outline-none placeholder:text-gray-400 px-1"
+            style={{ fontSize, fontFamily: stamp.fontFamily }}
           />
         )
       }
       return (
         <span
-          className="select-none"
-          style={{ fontSize: Math.min(stamp.height * 0.7, 24), fontFamily: stamp.fontFamily }}
+          className={`select-none truncate w-full h-full flex items-center px-1 ${!stamp.content ? 'text-gray-400' : ''}`}
+          style={{ fontSize, fontFamily: stamp.fontFamily }}
         >
-          {stamp.content}
+          {stamp.content || 'Text'}
         </span>
       )
     }
 
     if (stamp.type === 'date') {
+      const fontSize = Math.max(12, Math.min(stamp.height * 0.6, 48))
       return (
-        <span className="select-none" style={{ fontSize: Math.min(stamp.height * 0.7, 18) }}>
+        <span
+          className="select-none truncate w-full h-full flex items-center px-1"
+          style={{ fontSize }}
+        >
           {stamp.content}
         </span>
       )
@@ -156,8 +164,9 @@ export default function Stamp({ stamp }: StampProps) {
 
   return (
     <div
-      className={`stamp-element absolute flex items-center justify-center cursor-move ${
-        isSelected ? 'ring-2 ring-blue-500' : ''
+      ref={contentRef}
+      className={`stamp-element absolute cursor-move ${
+        isSelected ? 'outline outline-2 outline-blue-500' : ''
       }`}
       style={{
         left: stamp.x,
@@ -174,11 +183,13 @@ export default function Stamp({ stamp }: StampProps) {
       {isSelected && (
         <>
           <div
-            className="resize-handle absolute -right-1 -bottom-1 w-3 h-3 bg-blue-500 cursor-se-resize rounded-sm"
+            className="resize-handle absolute w-3 h-3 bg-blue-500 cursor-se-resize rounded-sm"
+            style={{ right: -6, bottom: -6 }}
             onMouseDown={handleResizeMouseDown}
           />
           <button
-            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+            className="absolute w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+            style={{ top: -10, right: -10 }}
             onClick={(e) => {
               e.stopPropagation()
               removeStamp(stamp.id)
