@@ -8,14 +8,14 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Free eSign - Sign Documents Online",
-  description: "Free, open-source e-signature tool. Sign PDFs instantly with no login required. Add signatures, text, and dates to documents. All processing happens in your browser for complete privacy.",
-  keywords: ["e-signature", "sign pdf", "free esign", "document signing", "pdf signature", "online signature", "digital signature"],
+  description: "100% free e-signature tool. No login, no account, no strings attached. Sign PDFs instantly in your browser. Your documents never leave your device. Simple, secure, and private.",
+  keywords: ["e-signature", "sign pdf", "free esign", "document signing", "pdf signature", "online signature", "digital signature", "no login", "no account", "browser only", "private", "secure"],
   authors: [{ name: "Roman Slack", url: "https://romanslack.com" }],
   creator: "Roman Slack",
   publisher: "Roman Slack",
   openGraph: {
     title: "Free eSign - Sign Documents Online",
-    description: "Free, open-source e-signature tool. Sign PDFs instantly with no login required.",
+    description: "100% free. No login, no account, no strings attached. Sign PDFs instantly in your browser. Your documents never leave your device.",
     url: "https://github.com/RomanSlack/free_esign_website",
     siteName: "Free eSign",
     type: "website",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Free eSign - Sign Documents Online",
-    description: "Free, open-source e-signature tool. Sign PDFs instantly with no login required.",
+    description: "100% free. No login, no account, no strings attached. Sign PDFs instantly in your browser. Your documents never leave your device.",
   },
   icons: {
     icon: [
