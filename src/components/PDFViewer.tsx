@@ -5,7 +5,7 @@ import { useStore } from '@/store/useStore'
 import Stamp from './Stamp'
 
 export default function PDFViewer() {
-  const { pdfFile, pdfPages, setPdfPages, stamps, setSelectedStampId, selectedTool, addStamp, showSignatureModal, setEditingStampId } = useStore()
+  const { pdfFile, pdfPages, setPdfPages, stamps, setSelectedStampId, selectedTool, addStamp, showSignatureModal, setEditingStampId, checkmarkVariant } = useStore()
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -93,7 +93,22 @@ export default function PDFViewer() {
       })
       return
     }
-  }, [selectedTool, setSelectedStampId, addStamp, showSignatureModal, setEditingStampId])
+
+    if (selectedTool === 'checkmark') {
+      const symbol = checkmarkVariant === 'square' ? '■' : '✓'
+      addStamp({
+        id: `checkmark-${Date.now()}`,
+        type: 'checkmark',
+        x: x - 12,
+        y: y - 12,
+        width: 24,
+        height: 24,
+        content: symbol,
+        pageIndex,
+      })
+      return
+    }
+  }, [selectedTool, setSelectedStampId, addStamp, showSignatureModal, setEditingStampId, checkmarkVariant])
 
   if (pdfPages.length === 0) return null
 

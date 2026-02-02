@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 export interface Stamp {
   id: string
-  type: 'signature' | 'text' | 'date'
+  type: 'signature' | 'text' | 'date' | 'checkmark'
   x: number
   y: number
   width: number
@@ -28,17 +28,21 @@ interface SignatureModal {
   pageIndex: number
 }
 
-export type Tool = 'select' | 'signature' | 'text' | 'date'
+export type Tool = 'select' | 'signature' | 'text' | 'date' | 'checkmark'
+export type CheckmarkVariant = 'square' | 'check'
 
 interface AppState {
   pdfFile: File | null
   pdfPages: string[]
   stamps: Stamp[]
+  stampHistory: Stamp[][]
+  historyIndex: number
   selectedStampId: string | null
   contextMenu: ContextMenu
   signatureModal: SignatureModal
   editingStampId: string | null
   selectedTool: Tool
+  checkmarkVariant: CheckmarkVariant
 
   setPdfFile: (file: File | null) => void
   setPdfPages: (pages: string[]) => void
@@ -52,18 +56,24 @@ interface AppState {
   hideSignatureModal: () => void
   setEditingStampId: (id: string | null) => void
   setSelectedTool: (tool: Tool) => void
+  setCheckmarkVariant: (variant: CheckmarkVariant) => void
+  undo: () => void
+  redo: () => void
   reset: () => void
 }
 
 const initialState = {
   pdfFile: null,
   pdfPages: [],
-  stamps: [],
+  stamps: [] as Stamp[],
+  stampHistory: [[]] as Stamp[][],
+  historyIndex: 0,
   selectedStampId: null,
   contextMenu: { visible: false, x: 0, y: 0, pageIndex: 0, viewportX: 0, viewportY: 0 },
   signatureModal: { visible: false, x: 0, y: 0, pageIndex: 0 },
   editingStampId: null,
   selectedTool: 'signature' as Tool,
+  checkmarkVariant: 'square' as CheckmarkVariant,
 }
 
 export const useStore = create<AppState>((set) => ({
@@ -72,20 +82,41 @@ export const useStore = create<AppState>((set) => ({
   setPdfFile: (file) => set({ pdfFile: file }),
   setPdfPages: (pages) => set({ pdfPages: pages }),
 
-  addStamp: (stamp) => set((state) => ({
-    stamps: [...state.stamps, stamp]
-  })),
+  addStamp: (stamp) => set((state) => {
+    const newStamps = [...state.stamps, stamp]
+    const newHistory = state.stampHistory.slice(0, state.historyIndex + 1)
+    newHistory.push(newStamps)
+    return {
+      stamps: newStamps,
+      stampHistory: newHistory,
+      historyIndex: newHistory.length - 1,
+    }
+  }),
 
-  updateStamp: (id, updates) => set((state) => ({
-    stamps: state.stamps.map((s) =>
+  updateStamp: (id, updates) => set((state) => {
+    const newStamps = state.stamps.map((s) =>
       s.id === id ? { ...s, ...updates } : s
-    ),
-  })),
+    )
+    const newHistory = state.stampHistory.slice(0, state.historyIndex + 1)
+    newHistory.push(newStamps)
+    return {
+      stamps: newStamps,
+      stampHistory: newHistory,
+      historyIndex: newHistory.length - 1,
+    }
+  }),
 
-  removeStamp: (id) => set((state) => ({
-    stamps: state.stamps.filter((s) => s.id !== id),
-    selectedStampId: state.selectedStampId === id ? null : state.selectedStampId,
-  })),
+  removeStamp: (id) => set((state) => {
+    const newStamps = state.stamps.filter((s) => s.id !== id)
+    const newHistory = state.stampHistory.slice(0, state.historyIndex + 1)
+    newHistory.push(newStamps)
+    return {
+      stamps: newStamps,
+      stampHistory: newHistory,
+      historyIndex: newHistory.length - 1,
+      selectedStampId: state.selectedStampId === id ? null : state.selectedStampId,
+    }
+  }),
 
   setSelectedStampId: (id) => set({ selectedStampId: id }),
 
@@ -103,6 +134,28 @@ export const useStore = create<AppState>((set) => ({
   setEditingStampId: (id) => set({ editingStampId: id }),
 
   setSelectedTool: (tool) => set({ selectedTool: tool }),
+
+  setCheckmarkVariant: (variant) => set({ checkmarkVariant: variant }),
+
+  undo: () => set((state) => {
+    if (state.historyIndex <= 0) return state
+    const newIndex = state.historyIndex - 1
+    return {
+      stamps: state.stampHistory[newIndex],
+      historyIndex: newIndex,
+      selectedStampId: null,
+    }
+  }),
+
+  redo: () => set((state) => {
+    if (state.historyIndex >= state.stampHistory.length - 1) return state
+    const newIndex = state.historyIndex + 1
+    return {
+      stamps: state.stampHistory[newIndex],
+      historyIndex: newIndex,
+      selectedStampId: null,
+    }
+  }),
 
   reset: () => set(initialState),
 }))

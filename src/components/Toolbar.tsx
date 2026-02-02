@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { useStore, Tool } from '@/store/useStore'
+import { useStore, Tool, CheckmarkVariant } from '@/store/useStore'
 
 const tools: { id: Tool; label: string; icon: ReactNode }[] = [
   {
@@ -40,29 +40,63 @@ const tools: { id: Tool; label: string; icon: ReactNode }[] = [
       </svg>
     ),
   },
+  {
+    id: 'checkmark',
+    label: 'Checkmark',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    ),
+  },
+]
+
+const checkmarkVariants: { id: CheckmarkVariant; label: string; symbol: string }[] = [
+  { id: 'square', label: 'Square', symbol: '■' },
+  { id: 'check', label: 'Check', symbol: '✓' },
 ]
 
 export default function Toolbar() {
-  const { selectedTool, setSelectedTool, pdfFile } = useStore()
+  const { selectedTool, setSelectedTool, pdfFile, checkmarkVariant, setCheckmarkVariant } = useStore()
 
   if (!pdfFile) return null
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white rounded-full shadow-lg border border-gray-200 px-2 py-2 flex items-center gap-1">
-      {tools.map((tool) => (
-        <button
-          key={tool.id}
-          onClick={() => setSelectedTool(tool.id)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-            selectedTool === tool.id
-              ? 'bg-blue-100 text-blue-700'
-              : 'text-gray-600 hover:bg-gray-100'
-          }`}
-        >
-          {tool.icon}
-          {tool.label}
-        </button>
-      ))}
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-2">
+      {selectedTool === 'checkmark' && (
+        <div className="bg-white rounded-full shadow-lg border border-gray-200 px-2 py-1 flex items-center gap-1">
+          {checkmarkVariants.map((variant) => (
+            <button
+              key={variant.id}
+              onClick={() => setCheckmarkVariant(variant.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                checkmarkVariant === variant.id
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span className="text-base">{variant.symbol}</span>
+              {variant.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="bg-white rounded-full shadow-lg border border-gray-200 px-2 py-2 flex items-center gap-1">
+        {tools.map((tool) => (
+          <button
+            key={tool.id}
+            onClick={() => setSelectedTool(tool.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              selectedTool === tool.id
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {tool.icon}
+            {tool.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

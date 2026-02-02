@@ -159,6 +159,18 @@ export default function Stamp({ stamp }: StampProps) {
       )
     }
 
+    if (stamp.type === 'checkmark') {
+      const fontSize = Math.min(stamp.width, stamp.height) * 0.9
+      return (
+        <span
+          className="select-none w-full h-full flex items-center justify-center"
+          style={{ fontSize, lineHeight: 1 }}
+        >
+          {stamp.content}
+        </span>
+      )
+    }
+
     return null
   }
 

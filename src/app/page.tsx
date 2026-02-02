@@ -9,7 +9,7 @@ import SignatureModal from '@/components/SignatureModal'
 import { exportPdf, downloadPdf } from '@/lib/pdfExport'
 
 export default function Home() {
-  const { pdfFile, pdfPages, stamps, reset } = useStore()
+  const { pdfFile, pdfPages, stamps, reset, undo, redo } = useStore()
 
   // Warn before closing if there are unsaved changes
   useEffect(() => {
@@ -22,6 +22,22 @@ export default function Home() {
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [stamps.length])
+
+  // Undo/Redo keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          redo()
+        } else {
+          undo()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [undo, redo])
 
   const handleExport = useCallback(async () => {
     if (!pdfFile || stamps.length === 0) return

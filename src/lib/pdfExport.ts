@@ -59,6 +59,14 @@ export async function exportPdf(
         y: pdfY + pdfHeight * 0.3,
         size: fontSize,
       })
+    } else if (stamp.type === 'checkmark') {
+      // Draw checkmark/square character centered in the stamp area
+      const fontSize = Math.min(pdfWidth, pdfHeight) * 0.9
+      page.drawText(stamp.content, {
+        x: pdfX + pdfWidth * 0.15,
+        y: pdfY + pdfHeight * 0.15,
+        size: fontSize,
+      })
     }
   }
 
