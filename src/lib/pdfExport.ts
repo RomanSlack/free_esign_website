@@ -1,4 +1,4 @@
-import { PDFDocument } from 'pdf-lib'
+import { PDFDocument, rgb } from 'pdf-lib'
 import { Stamp } from '@/store/useStore'
 
 export async function exportPdf(
@@ -60,13 +60,43 @@ export async function exportPdf(
         size: fontSize,
       })
     } else if (stamp.type === 'checkmark') {
-      // Draw checkmark/square character centered in the stamp area
-      const fontSize = Math.min(pdfWidth, pdfHeight) * 0.9
-      page.drawText(stamp.content, {
-        x: pdfX + pdfWidth * 0.15,
-        y: pdfY + pdfHeight * 0.15,
-        size: fontSize,
-      })
+      // Center the shape within the stamp bounds
+      const size = Math.min(pdfWidth, pdfHeight)
+      const shapeSize = size * 0.55  // Match the visual size of the Unicode character
+      const offsetX = pdfX + (pdfWidth - shapeSize) / 2
+      const offsetY = pdfY + (pdfHeight - shapeSize) / 2
+
+      if (stamp.content === '■') {
+        // Draw a filled black square
+        page.drawRectangle({
+          x: offsetX,
+          y: offsetY,
+          width: shapeSize,
+          height: shapeSize,
+          color: rgb(0, 0, 0),
+        })
+      } else {
+        // Draw a checkmark using lines
+        const left = offsetX
+        const right = offsetX + shapeSize
+        const top = offsetY + shapeSize
+        const bottom = offsetY
+        const midX = left + shapeSize * 0.35
+        const midY = bottom + shapeSize * 0.3
+
+        page.drawLine({
+          start: { x: left, y: bottom + shapeSize * 0.5 },
+          end: { x: midX, y: midY },
+          thickness: size * 0.1,
+          color: rgb(0, 0, 0),
+        })
+        page.drawLine({
+          start: { x: midX, y: midY },
+          end: { x: right, y: top },
+          thickness: size * 0.1,
+          color: rgb(0, 0, 0),
+        })
+      }
     }
   }
 
